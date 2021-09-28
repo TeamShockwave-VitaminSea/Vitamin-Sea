@@ -48,13 +48,9 @@ import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.ui.StyledPlayerView;
-import com.google.mlkit.common.model.LocalModel;
-import com.google.mlkit.vision.common.InputImage;
-import com.google.mlkit.vision.label.ImageLabeler;
 
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.label.Category;
-import org.tensorflow.lite.task.audio.classifier.AudioClassifier;
 import org.tensorflow.lite.task.vision.classifier.Classifications;
 import org.tensorflow.lite.task.vision.classifier.ImageClassifier;
 
@@ -183,19 +179,15 @@ public class CameraActivity extends AppCompatActivity {
         playerView.setPlayer(player);
 
 
-        MediaItem i = new MediaItem.Builder().setUri("file:///android_asset/4.1.mp4")
+        MediaItem i = new MediaItem.Builder().setUri("file:///android_asset/ask.mp4")
                 .setMediaId("ASK")
                 .build();
 
-        MediaItem i2 = new MediaItem.Builder().setUri("file:///android_asset/2.1.mp4")
-                .setMediaId("IDK")
+        MediaItem i3 = new MediaItem.Builder().setUri("file:///android_asset/thank.mp4")
+                .setMediaId("Thank")
                 .build();
 
-        MediaItem i3 = new MediaItem.Builder().setUri("file:///android_asset/3.1.mp4")
-                .setMediaId("IDK2")
-                .build();
-
-        MediaItem i4 = new MediaItem.Builder().setUri("file:///android_asset/1.1.mp4")
+        MediaItem i4 = new MediaItem.Builder().setUri("file:///android_asset/Stare.mp4")
                 .setMediaId("STARE")
                 .build();
 
@@ -216,14 +208,13 @@ public class CameraActivity extends AppCompatActivity {
         });
         playList = new ArrayList<>();
         playList.add(i);
-        playList.add(i2);
         playList.add(i3);
         playList.add(i4);
         player.setMediaItem(i);
         player.setRepeatMode(Player.REPEAT_MODE_ONE);
         player.prepare();
 
-        ImageClassifier.ImageClassifierOptions options = ImageClassifier.ImageClassifierOptions.builder().setMaxResults(1).build();
+    //    ImageClassifier.ImageClassifierOptions options = ImageClassifier.ImageClassifierOptions.builder().setMaxResults(1).build();
         try {
             classifier = ImageClassifier.createFromFile(this, "lite25.tflite");
         } catch (IOException e) {
@@ -262,15 +253,6 @@ public class CameraActivity extends AppCompatActivity {
             @Override
             public void onPictureTaken(byte[] bytes, Camera camera) {
                 Log.i(TAG, "picture taken");
-                InputImage image = null;
-                try {
-                    image = InputImage.fromByteArray(bytes, camera.getParameters().getPictureSize().width / 4, camera.getParameters().getPictureSize().height / 4, rotation, InputImage.IMAGE_FORMAT_NV21);
-                } catch (NullPointerException e) {
-                    e.printStackTrace();
-                }
-                Log.i(TAG, "height " + image.getHeight() + " width " + image.getWidth() + " rotation " + image.getRotationDegrees());
-
-                if (image != null) {
 
                     TensorImage tensorImage = TensorImage.fromBitmap(getScaledBitmap(bytes));
                     List<Classifications> labels = classifier.classify(tensorImage);
@@ -283,7 +265,7 @@ public class CameraActivity extends AppCompatActivity {
                                   try {
 
                                         detectedTime = System.currentTimeMillis();
-                                      sendData("d\n");
+                                      sendData("b\n");
                                     } catch (IOException e) {
                                         e.printStackTrace();
                                     }
@@ -298,7 +280,7 @@ public class CameraActivity extends AppCompatActivity {
                     Log.i(TAG, "" + names);
 
                     mCamera.startPreview();
-                }
+
             }
         };
         Timer timer = new Timer();
@@ -447,10 +429,8 @@ public class CameraActivity extends AppCompatActivity {
                                     handler.post(new Runnable() {
                                         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                                         public void run() {
-                                            if (data.startsWith("b")) {
-                                                if (System.currentTimeMillis() - receivedTime > 10000) {
-                                                    Log.i(TAG, "b");
-                                                    receivedTime = System.currentTimeMillis();
+                                            if (data.startsWith("m")) {
+                                                    Log.i(TAG, "m");
                                                     for (MediaItem item : playList) {
                                                         if (item.mediaId.equalsIgnoreCase("ASK")) {
                                                             next = item;
@@ -467,8 +447,27 @@ public class CameraActivity extends AppCompatActivity {
                                                         }
                                                     });
 
+                                            }
+
+                                            else if (data.startsWith("r")){
+                                             Log.i(TAG, "r");
+                                                for (MediaItem item : playList) {
+                                                    if (item.mediaId.equalsIgnoreCase("Thank")) {
+                                                        next = item;
+                                                    }
                                                 }
-                                            } else {
+
+                                                new Handler(getMainLooper()).post(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        player.setRepeatMode(Player.REPEAT_MODE_OFF);
+                                                        player.setMediaItem(next);
+                                                        player.prepare();
+                                                        player.play();
+                                                    }
+                                                });
+                                            }
+                                            else {
 
                                             }
                                         }
