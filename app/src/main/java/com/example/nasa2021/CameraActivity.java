@@ -4,7 +4,12 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.companion.AssociationRequest;
+import android.companion.BluetoothDeviceFilter;
+import android.companion.CompanionDeviceManager;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -67,9 +72,11 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class CameraActivity extends AppCompatActivity {
 
+    private static final int SELECT_DEVICE_REQUEST_CODE = 10;
     private Camera mCamera;
     private Camera.PictureCallback pictureCallback;
     private Camera.ShutterCallback shutterCallback;
@@ -357,8 +364,8 @@ public class CameraActivity extends AppCompatActivity {
 
         final int height = options.outHeight;
         final int width = options.outWidth;
-        int reqHeight = options.outHeight / 3;
-        int reqWidth = options.outWidth / 3;
+        int reqHeight = options.outHeight / 2;
+        int reqWidth = options.outWidth / 2;
         int inSampleSize = 1;
         Log.i(TAG, "Out "+ height);
         Log.i(TAG, "Out "+ width);
@@ -481,15 +488,16 @@ public class CameraActivity extends AppCompatActivity {
         workerThread.start();
     }
 
-    void sendData(String message) throws IOException {
+    private void sendData(String message) throws IOException {
        mmOutputStream.write(message.getBytes());
     }
 
-    void closeBluetooth() throws IOException {
+    private void closeBluetooth() throws IOException {
         stopWorker = true;
         mmOutputStream.close();
         mmInputStream.close();
         mmSocket.close();
     }
+
 }
 
