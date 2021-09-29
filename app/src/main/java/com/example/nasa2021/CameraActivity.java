@@ -210,7 +210,7 @@ public class CameraActivity extends AppCompatActivity {
         playList.add(i);
         playList.add(i3);
         playList.add(i4);
-        player.setMediaItem(i);
+        player.setMediaItem(i4);
         player.setRepeatMode(Player.REPEAT_MODE_ONE);
         player.prepare();
 
@@ -261,7 +261,7 @@ public class CameraActivity extends AppCompatActivity {
                         List<Category> cats = label.getCategories();
                         for (Category c : cats) {
                             if (c.getLabel().equalsIgnoreCase("Mountain Dew")) {
-                                if (c.getScore() > 0.65 && System.currentTimeMillis() - detectedTime > 10000) {
+                                if (c.getScore() > 0.55 && System.currentTimeMillis() - detectedTime > 10000) {
                                   try {
 
                                         detectedTime = System.currentTimeMillis();
@@ -381,7 +381,7 @@ public class CameraActivity extends AppCompatActivity {
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 Log.i(TAG, "device names "+device.getName());
-                if (device.getName().equals("Nasa")) {
+                if (device.getName().equals("H-C-2010-06-01")) {
                     Log.i(TAG, device.getName()+" found");
                     mmDevice = device;
                     break;
@@ -430,7 +430,9 @@ public class CameraActivity extends AppCompatActivity {
                                         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                                         public void run() {
                                             if (data.startsWith("m")) {
-                                                    Log.i(TAG, "m");
+                                                if (System.currentTimeMillis()-receivedTime>40000) {
+                                                    Log.i(TAG, "received m");
+                                                    receivedTime = System.currentTimeMillis();
                                                     for (MediaItem item : playList) {
                                                         if (item.mediaId.equalsIgnoreCase("ASK")) {
                                                             next = item;
@@ -446,7 +448,7 @@ public class CameraActivity extends AppCompatActivity {
                                                             player.play();
                                                         }
                                                     });
-
+                                                }
                                             }
 
                                             else if (data.startsWith("r")){
@@ -488,7 +490,14 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     private void sendData(String message) throws IOException {
-       mmOutputStream.write(message.getBytes());
+       try {
+           mmOutputStream.write(message.getBytes());
+       }
+       catch (IOException e){
+           openBluetooth();
+           Log.i(TAG, "reconnecting");
+       }
+      // mmOutputStream.write(message.getBytes());
     }
 
     private void closeBluetooth() throws IOException {
