@@ -75,7 +75,6 @@ public class CameraActivity extends AppCompatActivity {
     private static final int SELECT_DEVICE_REQUEST_CODE = 10;
     private Camera mCamera;
     private Camera.PictureCallback pictureCallback;
-    private Camera.ShutterCallback shutterCallback;
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
     static {
@@ -107,68 +106,20 @@ public class CameraActivity extends AppCompatActivity {
     private MediaItem next;
     private List<MediaItem> playList;
     private SpeechRecognizer recognizer;
+    private boolean mLock;
+    private long rTime;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(@Nullable @org.jetbrains.annotations.Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i(TAG, "Recognition is available on this system "+SpeechRecognizer.isRecognitionAvailable(this));
-        recognizer = SpeechRecognizer.createSpeechRecognizer(this);
-        recognizer.setRecognitionListener(new RecognitionListener() {
-            @Override
-            public void onReadyForSpeech(Bundle bundle) {
-                Log.i(TAG, "ready to listen");
-            }
-
-            @Override
-            public void onBeginningOfSpeech() {
-
-            }
-
-            @Override
-            public void onRmsChanged(float v) {
-
-            }
-
-            @Override
-            public void onBufferReceived(byte[] bytes) {
-
-            }
-
-            @Override
-            public void onEndOfSpeech() {
-
-            }
-
-            @Override
-            public void onError(int i) {
-
-            }
-
-            @Override
-            public void onResults(Bundle bundle) {
-                ArrayList<String> speech = bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                for (String word : speech) {
-                    Log.i(TAG, "Speech : " + word);
-                }
-            }
-
-            @Override
-            public void onPartialResults(Bundle bundle) {
-
-            }
-
-            @Override
-            public void onEvent(int i, Bundle bundle) {
-
-            }
-        });
-        recognizer.startListening(new Intent().setAction(RecognizerIntent.ACTION_RECOGNIZE_SPEECH));
         View decorView = getWindow().getDecorView();
 
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
         getSupportActionBar().hide();
+
+        //initialize the player with videos to play
 
         player = new SimpleExoPlayer.Builder(this).build();
         StyledPlayerView playerView = new StyledPlayerView(this);
@@ -197,6 +148,10 @@ public class CameraActivity extends AppCompatActivity {
                 if (playbackState == Player.STATE_ENDED) {
                     for (MediaItem item : playList) {
                         if (item.mediaId.equalsIgnoreCase("STARE")) {
+                            if (next.mediaId.equalsIgnoreCase("Thank"))
+                            {
+                                mLock=false;
+                            }
                             next = item;
                             player.setRepeatMode(Player.REPEAT_MODE_ONE);
                             player.setMediaItem(next);
@@ -214,8 +169,8 @@ public class CameraActivity extends AppCompatActivity {
         player.setRepeatMode(Player.REPEAT_MODE_ONE);
         player.prepare();
 
-    //    ImageClassifier.ImageClassifierOptions options = ImageClassifier.ImageClassifierOptions.builder().setMaxResults(1).build();
         try {
+
             classifier = ImageClassifier.createFromFile(this, "lite25.tflite");
         } catch (IOException e) {
             e.printStackTrace();
@@ -261,7 +216,7 @@ public class CameraActivity extends AppCompatActivity {
                         List<Category> cats = label.getCategories();
                         for (Category c : cats) {
                             if (c.getLabel().equalsIgnoreCase("Mountain Dew")) {
-                                if (c.getScore() > 0.55 && System.currentTimeMillis() - detectedTime > 10000) {
+                                if (c.getScore() > 0.70 && System.currentTimeMillis() - detectedTime > 10000) {
                                   try {
 
                                         detectedTime = System.currentTimeMillis();
@@ -346,8 +301,8 @@ public class CameraActivity extends AppCompatActivity {
 
         final int height = options.outHeight;
         final int width = options.outWidth;
-        int reqHeight = options.outHeight / 2;
-        int reqWidth = options.outWidth / 2;
+        int reqHeight = options.outHeight / 3;
+        int reqWidth = options.outWidth / 3;
         int inSampleSize = 1;
         Log.i(TAG, "Out "+ height);
         Log.i(TAG, "Out "+ width);
@@ -366,6 +321,7 @@ public class CameraActivity extends AppCompatActivity {
     }
 
 
+
     void findBluetooth() {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
@@ -381,6 +337,9 @@ public class CameraActivity extends AppCompatActivity {
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 Log.i(TAG, "device names "+device.getName());
+
+                //the device name below must be replaced with the naeme of the bluetooth device the app will connect to or else the app won't function as intended
+
                 if (device.getName().equals("H-C-2010-06-01")) {
                     Log.i(TAG, device.getName()+" found");
                     mmDevice = device;
@@ -430,7 +389,7 @@ public class CameraActivity extends AppCompatActivity {
                                         @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                                         public void run() {
                                             if (data.startsWith("m")) {
-                                                if (System.currentTimeMillis()-receivedTime>40000) {
+                                                if (System.currentTimeMillis()-receivedTime>40000&&mLock==false) {
                                                     Log.i(TAG, "received m");
                                                     receivedTime = System.currentTimeMillis();
                                                     for (MediaItem item : playList) {
@@ -453,21 +412,25 @@ public class CameraActivity extends AppCompatActivity {
 
                                             else if (data.startsWith("r")){
                                              Log.i(TAG, "r");
-                                                for (MediaItem item : playList) {
-                                                    if (item.mediaId.equalsIgnoreCase("Thank")) {
-                                                        next = item;
-                                                    }
-                                                }
+                                             if (System.currentTimeMillis()-rTime>10000) {
+                                                 rTime=System.currentTimeMillis();
+                                                 mLock = true;
+                                                 for (MediaItem item : playList) {
+                                                     if (item.mediaId.equalsIgnoreCase("Thank")) {
+                                                         next = item;
+                                                     }
+                                                 }
 
-                                                new Handler(getMainLooper()).post(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        player.setRepeatMode(Player.REPEAT_MODE_OFF);
-                                                        player.setMediaItem(next);
-                                                        player.prepare();
-                                                        player.play();
-                                                    }
-                                                });
+                                                 new Handler(getMainLooper()).post(new Runnable() {
+                                                     @Override
+                                                     public void run() {
+                                                         player.setRepeatMode(Player.REPEAT_MODE_OFF);
+                                                         player.setMediaItem(next);
+                                                         player.prepare();
+                                                         player.play();
+                                                     }
+                                                 });
+                                             }
                                             }
                                             else {
 
@@ -497,7 +460,6 @@ public class CameraActivity extends AppCompatActivity {
            openBluetooth();
            Log.i(TAG, "reconnecting");
        }
-      // mmOutputStream.write(message.getBytes());
     }
 
     private void closeBluetooth() throws IOException {
