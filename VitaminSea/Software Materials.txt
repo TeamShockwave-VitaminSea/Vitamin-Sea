@@ -1,0 +1,6 @@
+1.Lineage OS (Raspberry Pi Operating System). (https://konstakang.com/devices/rpi3/LineageOS17.1/)
+2.TFLite task library for image processing (‘org.tensorflow:tensorflow-lite-task-3.vision:0.2.0’ )
+3.Android studio for developing the application.(https://developer.android.com/studio?gclid=CjwKCAjw49qKBhAoEiwAHQVTo5W-vlY8T834-47CtPUjC2BNE43kjDikuqbzIbGJdXLdwUOypg6rhRoCEQoQAvD_BwE&gclsrc=aw.ds)
+4.Tflite Model Maker was used to train the image classification model.(https://www.tensorflow.org/lite/tutorials/model_maker_image_classification)
+6.Arduino IDE (https://www.arduino.cc/en/software)
+7.3d Model Maker Blender (https://www.blender.org/download/)

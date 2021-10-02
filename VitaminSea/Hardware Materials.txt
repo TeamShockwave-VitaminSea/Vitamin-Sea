@@ -1,0 +1,21 @@
+1.Raspberry Pi 3B+
+2.Arduino Mega 2560
+3.5inch HDMI Raspberry Pi Display
+4.Raspberry Pi Camera Rev  1.3
+5.HC-05 (Bluetooth Module)
+6.L298n Motor Driver
+7.Gear Motor With Rubber Wheels
+8.PIR Sensor
+9.IR Sensor
+10.9g Servo 
+11.20x4 LCD Display 
+12.I2c Display Driver
+13.5v Audio Driver
+14.3w MIC
+15.7809 Voltage Regulator for 9v
+16.7805 Voltage Regulator for 5v
+17.12v 3s Battery Management  System Circuit
+18.Lithium Battery
+19.Connector Male to Female
+20.Connector Male To Male
+
